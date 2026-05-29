@@ -12,7 +12,19 @@ import Jimp from "jimp";
  export async function filterImageFromURL(inputURL) {
   return new Promise(async (resolve, reject) => {
     try {
-      const photo = await Jimp.read(inputURL);
+      // 1. Fetch the image using native Node.js fetch (works perfectly in Node 18)
+      const response = await fetch(inputURL);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image from URL: ${response.status}`);
+      }
+      
+      // 2. Convert the fetched data into a Node Buffer
+      const arrayBuffer = await response.arrayBuffer();
+      const imageBuffer = Buffer.from(arrayBuffer);
+
+      // 3. Pass the raw Buffer directly into Jimp
+      const photo = await Jimp.read(imageBuffer);
       const outpath =
         "/tmp/filtered." + Math.floor(Math.random() * 2000) + ".jpg";
       await photo
